@@ -3,5 +3,5 @@ syntax = "proto3";
 package shell;
 
 message ShellInfo {
-    string name = 2;
+    string working_directory = 1;
 }

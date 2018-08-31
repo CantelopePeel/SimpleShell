@@ -20,6 +20,7 @@ cc_library(
         "shell.cc",
     ],
     deps = [
+        "//shell/internal_cmd:internal-cmds-lib",
         ":shell-utils-lib",
     ],
 )

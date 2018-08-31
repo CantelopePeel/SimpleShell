@@ -3,6 +3,8 @@
 //
 
 #include "shell.h"
+#include "shell_utils.h"
+#include "internal_cmd/exit_command.h"
 
 #include <iostream>
 
@@ -17,23 +19,32 @@ Start() {
         std::cin >> command_line;
         // TODO set a maximum length of command to avoid unreasonable commands / bad agents.
 
-        std::cout << "Print: " << command_line << std::endl;
+        Command command;
+        if (!ShellUtils::ParseCommand(command_line, &command)) {
+            // TODO handle if command is invalid.
+        }
 
-        ProcessCommandLine(command_line);
-        if (command_line == "exit") {
-            Exit();
+        if (!DelegateCommand(command)) {
+
         }
     }
 }
 
-bool Shell::Exit() {
-    std::exit(0);
-}
-
 bool
 Shell::
-ProcessCommandLine(const std::string& command) {
-    return false;
+DelegateCommand(Command command) {
+    if (ShellUtils::IsInteralCommand(command)) {
+        std::string program(command.program());
+        std::string command_output;
+
+        if (program == "exit") {
+            auto exit_command = ExitCommand(command);
+            exit_command.Run(new ShellInfo(), &command_output);
+
+        }
+    } else {
+        std::cout << "Print: " << command.DebugString() << std::endl;
+    }
 }
 
 

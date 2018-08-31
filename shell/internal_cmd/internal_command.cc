@@ -3,3 +3,9 @@
 //
 
 #include "internal_command.h"
+
+using namespace shell;
+
+InternalCommand::
+InternalCommand(Command command) :
+        command_(command) {}

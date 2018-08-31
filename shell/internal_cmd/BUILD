@@ -1,3 +1,5 @@
+package(default_visibility = ["//shell:__subpackages__"])
+
 cc_library(
     name = "internal-command-lib",
     hdrs = [
@@ -20,9 +22,9 @@ cc_library(
         "cd_command.h",
     ],
     srcs = [
-        "jobs_command.cc",
-        "exit_command.cc",
         "cd_command.cc",
+        "exit_command.cc",
+        "jobs_command.cc",
     ],
     deps = [
         ":internal-command-lib",

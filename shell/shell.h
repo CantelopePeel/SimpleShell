@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "shell/proto/command.pb.h"
+
 namespace shell {
     class Shell {
         public:
@@ -14,7 +16,7 @@ namespace shell {
             bool Exit();
 
         private:
-            bool ProcessCommandLine(const std::string& command);
+            bool DelegateCommand(Command command);
             bool StartProcess();
     };
 }

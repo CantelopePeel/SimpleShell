@@ -6,8 +6,12 @@
 
 using namespace shell;
 
+ExitCommand::
+ExitCommand(const Command& command)
+        : InternalCommand(command) {}
+
 void
 ExitCommand::
 Run(ShellInfo* shell_info, std::string* output) {
-
+    std::exit(0);
 }

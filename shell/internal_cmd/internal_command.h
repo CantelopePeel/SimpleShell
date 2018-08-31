@@ -9,9 +9,14 @@
 #include "shell/proto/command.pb.h"
 
 namespace shell {
-    class InternalCommand : public Command {
+    class InternalCommand {
         public:
+            InternalCommand(Command command);
+
             virtual void Run(ShellInfo* shell_info, std::string* output) = 0;
+
+        protected:
+            Command command_;
     };
 }
 

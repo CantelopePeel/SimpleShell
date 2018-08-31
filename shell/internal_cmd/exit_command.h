@@ -10,7 +10,9 @@
 namespace shell {
     class ExitCommand : public InternalCommand {
         public:
-            virtual void Run(ShellInfo* shell_info, std::string* output);
+        ExitCommand(const Command& command);
+
+        virtual void Run(ShellInfo* shell_info, std::string* output);
     };
 }
 

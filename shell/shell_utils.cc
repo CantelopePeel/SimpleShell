@@ -17,7 +17,7 @@ ParseCommand(const std::string& command_line, Command* command) {
 
     if (token_iter != std::sregex_token_iterator()) {
         std::cout << *token_iter << std::endl;
-        //command->set_program((token_iter->begin()));
+        command->set_program(std::string(*token_iter));
         while (++token_iter != std::sregex_token_iterator()) {
             // TODO handle ampersand
             std::cout << *token_iter << std::endl;
@@ -30,4 +30,12 @@ ParseCommand(const std::string& command_line, Command* command) {
         // TODO add error message.
         return false;
     }
+}
+
+bool
+ShellUtils::
+IsInteralCommand(const Command& command) {
+    return command.program() == "cd" ||
+           command.program() == "exit" ||
+           command.program() == "jobs";
 }
