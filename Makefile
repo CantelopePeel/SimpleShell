@@ -11,3 +11,7 @@ $(BAZEL_EXEC):
 build: $(BAZEL_EXEC)
 	$(BAZEL_EXEC) build //shell:shell-exec
 
+.PHONY: run
+run: $(BAZEL_EXEC)
+	$(BAZEL_EXEC) run //shell:shell-exec
+
