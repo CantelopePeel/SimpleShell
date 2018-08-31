@@ -5,3 +5,6 @@ Build instructions:
     - See Bazel install requirements and meet them before continuing.
   - Clone this repo.
   - Run 'make build'
+
+Run instructions: 
+  - Run 'make run'
