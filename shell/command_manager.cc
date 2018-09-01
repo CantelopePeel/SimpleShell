@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 using namespace shell;
 
@@ -31,8 +32,14 @@ Run(const Command& command, Job* job) {
         int exec_val = execvp(command.program().c_str(), arguments);
         if (exec_val < 0) {
             std::cout << "ERROR" << std::endl;
+            return false;
         }
     } else if (pid > 0) {
+        // TODO do something with incremented counter.
+        job_counter_++;
+        // TODO handle if an error occurs.
         waitpid(pid, nullptr, 0);
     }
+
+    return true;
 }
