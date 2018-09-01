@@ -66,9 +66,10 @@ DelegateCommand(Command command) {
             auto jobs_command = JobsCommand(command);
             jobs_command.Run(&shell_info_, &command_output);
         }
+        return true;
     } else {
         Job job;
-        command_manager_.Run(command, &job);
+        return command_manager_.Run(command, &job);
     }
 }
 

@@ -10,6 +10,7 @@
 #include "shell/proto/command.pb.h"
 #include "shell/proto/shell_info.pb.h"
 #include "command_manager.h"
+#include "signal_manager.h"
 
 
 namespace shell {
@@ -25,6 +26,7 @@ namespace shell {
 
             ShellInfo shell_info_;
             CommandManager command_manager_;
+            SignalManager signal_manager_;
     };
 }
 
