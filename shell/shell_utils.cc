@@ -16,7 +16,6 @@ ParseCommand(const std::string& command_line, Command* command) {
     auto token_iter = std::sregex_token_iterator(command_line.begin(), command_line.end(), whitespace_regex, -1);
 
     if (token_iter != std::sregex_token_iterator()) {
-        // std::cout << "Prog: " << *token_iter << std::endl; // TODO remove.
         command->set_program(std::string(*token_iter++));
         while (token_iter != std::sregex_token_iterator()) {
             // TODO handle ampersand

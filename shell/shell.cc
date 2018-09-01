@@ -67,8 +67,6 @@ DelegateCommand(Command command) {
             jobs_command.Run(&shell_info_, &command_output);
         }
     } else {
-        std::cout << "Print: " << command.DebugString() << std::endl;
-
         Job job;
         command_manager_.Run(command, &job);
     }
