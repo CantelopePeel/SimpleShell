@@ -13,6 +13,19 @@ cc_library(
 )
 
 cc_library(
+    name = "signal-manager-lib",
+    hdrs = [
+        "signal_manager.h",
+    ],
+    srcs = [
+        "signal_manager.cc",
+    ],
+    deps = [
+        "//shell/proto:job-proto-lib"
+    ],
+)
+
+cc_library(
     name = "shell-utils-lib",
     hdrs = [
         "shell_utils.h",
@@ -37,6 +50,7 @@ cc_library(
         "//shell/internal_cmd:internal-cmds-lib",
         ":shell-utils-lib",
         ":command-manager-lib",
+        ":signal-manager-lib",
     ],
 )
 
