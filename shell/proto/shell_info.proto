@@ -1,7 +1,11 @@
 syntax = "proto3";
 
+import "shell/proto/job.proto";
+
 package shell;
 
 message ShellInfo {
     string working_directory = 1;
+
+    repeated Job jobs = 2;
 }

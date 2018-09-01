@@ -40,4 +40,7 @@ proto_library(
     srcs = [
         "shell_info.proto",
     ],
+    deps = [
+        ":job-proto",
+    ],
 )
