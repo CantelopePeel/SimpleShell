@@ -17,9 +17,9 @@ cc_library(
 cc_library(
     name = "internal-cmds-lib",
     hdrs = [
-        "jobs_command.h",
-        "exit_command.h",
         "cd_command.h",
+        "exit_command.h",
+        "jobs_command.h",
     ],
     srcs = [
         "cd_command.cc",

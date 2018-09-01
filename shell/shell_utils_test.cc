@@ -32,3 +32,6 @@ TEST_F(ShellUtilsTest, ParseCommand_Success4) {
     // TODO, we will implement later.
     ASSERT_FALSE(true);
 }
+
+TEST_F(ShellUtilsTest, IsInternalCommand) {
+}

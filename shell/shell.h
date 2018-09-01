@@ -8,6 +8,8 @@
 #include <string>
 
 #include "shell/proto/command.pb.h"
+#include "shell/proto/shell_info.pb.h"
+
 
 namespace shell {
     class Shell {
@@ -16,8 +18,11 @@ namespace shell {
             bool Exit();
 
         private:
+            bool ProcessCommandLine(const std::string& command_line);
             bool DelegateCommand(Command command);
             bool StartProcess();
+
+            ShellInfo shell_info_;
     };
 }
 

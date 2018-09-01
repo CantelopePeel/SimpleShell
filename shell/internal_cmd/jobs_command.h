@@ -10,7 +10,9 @@
 namespace shell {
     class JobsCommand : public InternalCommand {
         public:
-            virtual void Run(ShellInfo* shell_info, std::string* output);
+        JobsCommand(const Command& command);
+
+        virtual void Run(ShellInfo* shell_info, std::string* output);
     };
 }
 

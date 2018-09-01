@@ -3,4 +3,5 @@ syntax = "proto3";
 package shell;
 
 message Job {
+    int32 jobI
 }
