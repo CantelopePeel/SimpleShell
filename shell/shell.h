@@ -9,6 +9,7 @@
 
 #include "shell/proto/command.pb.h"
 #include "shell/proto/shell_info.pb.h"
+#include "command_manager.h"
 
 
 namespace shell {
@@ -23,6 +24,7 @@ namespace shell {
             bool StartProcess();
 
             ShellInfo shell_info_;
+            CommandManager command_manager_;
     };
 }
 

@@ -3,10 +3,13 @@
 //
 
 #include "shell.h"
+
 #include "shell_utils.h"
 #include "internal_cmd/exit_command.h"
 #include "internal_cmd/cd_command.h"
 #include "internal_cmd/jobs_command.h"
+#include "command_manager.h"
+#include "shell/proto/job.pb.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -65,6 +68,9 @@ DelegateCommand(Command command) {
         }
     } else {
         std::cout << "Print: " << command.DebugString() << std::endl;
+
+        Job job;
+        command_manager_.Run(command, &job);
     }
 }
 

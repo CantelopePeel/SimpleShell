@@ -3,4 +3,6 @@ syntax = "proto3";
 package shell;
 
 message Job {
+    uint32 job_id = 1;
+    uint32 process_id = 2;
 }

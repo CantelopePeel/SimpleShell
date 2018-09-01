@@ -1,4 +1,18 @@
 cc_library(
+    name = "command-manager-lib",
+    hdrs = [
+        "command_manager.h",
+    ],
+    srcs = [
+        "command_manager.cc",
+    ],
+    deps = [
+        "//shell/proto:command-proto-lib",
+        "//shell/proto:job-proto-lib"
+    ],
+)
+
+cc_library(
     name = "shell-utils-lib",
     hdrs = [
         "shell_utils.h",
@@ -22,11 +36,12 @@ cc_library(
     deps = [
         "//shell/internal_cmd:internal-cmds-lib",
         ":shell-utils-lib",
+        ":command-manager-lib",
     ],
 )
 
 cc_test(
-    name = "shell-lib_test",
+    name = "shell-util_test",
     srcs = [
         "shell_utils_test.cc",
     ],
@@ -44,6 +59,6 @@ cc_binary(
         "shell_exec.cc",
     ],
     deps = [
-        "//shell:shell-lib",
+        ":shell-lib",
     ],
 )
