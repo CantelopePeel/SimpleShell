@@ -7,8 +7,9 @@ cc_library(
         "command_manager.cc",
     ],
     deps = [
+        "//shell/proto:shell-info-proto-lib",
         "//shell/proto:command-proto-lib",
-        "//shell/proto:job-proto-lib"
+        "//shell/proto:job-proto-lib",
     ],
 )
 
@@ -21,7 +22,8 @@ cc_library(
         "signal_manager.cc",
     ],
     deps = [
-        "//shell/proto:job-proto-lib"
+        "//shell/proto:shell-info-proto-lib",
+        "//shell/proto:job-proto-lib",
     ],
 )
 
@@ -35,6 +37,8 @@ cc_library(
     ],
     deps = [
         "//shell/proto:command-proto-lib",
+        "//shell/proto:shell-info-proto-lib",
+        "//shell/proto:job-proto-lib",
     ],
 )
 

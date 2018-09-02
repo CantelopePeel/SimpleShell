@@ -10,6 +10,10 @@
 
 using namespace shell;
 
+CommandManager::
+CommandManager(std::shared_ptr<ShellInfo> shell_info)
+        : shell_info_(shell_info) {}
+
 bool
 CommandManager::
 Run(const Command& command, Job* job) {
