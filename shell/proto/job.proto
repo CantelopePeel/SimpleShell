@@ -3,13 +3,13 @@ syntax = "proto3";
 package shell;
 
 message Job {
-    uint32 job_id = 1;
-    uint32 process_id = 2;
-
     enum Status {
         FOREGROUND = 0;
         BACKGROUND = 1;
     }
 
-    Status status = 3;
+    uint32 job_id = 1;
+    Status status = 2;
+    repeated uint32 process_id = 3;
+    repeated uint32 open_file_descriptor = 4;
 }

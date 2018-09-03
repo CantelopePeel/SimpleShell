@@ -3,6 +3,11 @@ syntax = "proto3";
 package shell;
 
 message Command {
-    string program = 1;
-    repeated string argument = 2;
+    message SubCommand {
+        string program = 1;
+        repeated string argument = 2;
+    }
+
+    string original_command = 1;
+    repeated SubCommand sub_command = 2;
 }

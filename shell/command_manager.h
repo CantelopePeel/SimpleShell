@@ -21,6 +21,8 @@ namespace shell {
         private:
             std::shared_ptr<ShellInfo> shell_info_;
             unsigned int job_counter_ = 0;
+
+            bool CleanUpJob(const Job& job);
     };
 }
 

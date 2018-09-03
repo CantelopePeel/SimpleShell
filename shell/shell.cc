@@ -11,6 +11,7 @@
 #include "command_manager.h"
 #include "shell/proto/job.pb.h"
 
+#include <vector>
 #include <regex>
 #include <iostream>
 #include <unistd.h>
@@ -36,11 +37,16 @@ Start() {
     for (;;) {
         std::cout << shell_info_->working_directory() << "> ";
         std::string command_line;
-        std::getline(std::cin, command_line);
         // TODO set a maximum length of command to avoid unreasonable commands / bad agents.
-
-        ProcessCommandLine(command_line);
+        if (std::getline(std::cin, command_line)) {
+            ProcessCommandLine(command_line);
+        } else {
+            std::cout << std::endl;
+            break;
+        }
     }
+
+    return true;
 }
 
 bool
@@ -68,7 +74,7 @@ bool
 Shell::
 DelegateCommand(Command command) {
     if (ShellUtils::IsInteralCommand(command)) {
-        std::string program(command.program());
+        std::string program(command.sub_command(0).program());
         std::string command_output;
 
         if (program == "cd") {
@@ -85,7 +91,9 @@ DelegateCommand(Command command) {
         return true;
     } else {
         Job job;
-        return command_manager_.Run(command, &job);
+        if (!command_manager_.Run(command, &job)) {
+            // TODO do something on error.
+        }
     }
 }
 
