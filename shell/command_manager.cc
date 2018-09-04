@@ -5,12 +5,9 @@
 #include "command_manager.h"
 
 #include <vector>
-#include <util>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-extern char** environ;
 
 using namespace shell;
 
@@ -128,11 +125,12 @@ CreatePipes(const Command& command, Job* job) {
     for (int i = 0; i < (command.sub_command_size() - 1); i++) {
         // TODO implement
     }
+    return false;
 }
 
 bool
 CommandManager::
-ClosePipes(JobsCommand) {
+ClosePipes(const Job& job) {
     // TODO implement
     return false;
 }

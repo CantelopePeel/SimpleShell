@@ -19,10 +19,13 @@ namespace shell {
             bool Run(const Command& command, Job* job);
 
         private:
+            bool CleanUpJob(const Job& job);
+            bool ClosePipes(const Job& job);
+            bool CreatePipes(const Command& command, Job* job);
+
             std::shared_ptr<ShellInfo> shell_info_;
             unsigned int job_counter_ = 0;
 
-            bool CleanUpJob(const Job& job);
     };
 }
 
