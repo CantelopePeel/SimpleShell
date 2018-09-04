@@ -19,16 +19,22 @@ ParseCommand(const std::string& command_line, Command* command) {
 
     auto* sub_command = command->add_sub_command();
     if (token_iter != std::sregex_token_iterator()) {
-        sub_command->set_program(std::string(*token_iter++));
+        bool set_program = true;
         while (token_iter != std::sregex_token_iterator()) {
             // TODO handle errors.
-            if (std::string(*token_iter++) == "|") {
+            if (std::string(*token_iter) == "|") {
                 sub_command = command->add_sub_command();
+                set_program = true;
+                token_iter++;
+            } else if (set_program) {
+                sub_command->set_program(std::string(*token_iter++));
+                set_program = false;
+            } else {
+                sub_command->add_argument(std::string(*token_iter++));
             }
-
-            // TODO handle ampersand
-            sub_command->add_argument(std::string(*token_iter++));
         }
+
+        std::cout << "Command: " << command->DebugString() << std::endl;
 
         return true;
     } else {

@@ -6,6 +6,7 @@ $(BAZEL_EXEC):
 	mkdir bazel
 	unzip -q -d bazel $(BAZEL_ARCHIVE)
 	bash ./bazel/compile.sh
+	rm $(BAZEL_ARCHIVE)
 
 .PHONY: build
 build: $(BAZEL_EXEC)

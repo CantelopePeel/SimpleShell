@@ -91,9 +91,7 @@ DelegateCommand(Command command) {
         return true;
     } else {
         Job job;
-        if (!command_manager_.Run(command, &job)) {
-            // TODO do something on error.
-        }
+        return command_manager_.Run(command, &job);
     }
 }
 
