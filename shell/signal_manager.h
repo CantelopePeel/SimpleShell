@@ -12,14 +12,26 @@
 namespace shell {
     class SignalManager {
         public:
-            SignalManager(std::shared_ptr<ShellInfo> shell_info);
+            static SignalManager* GetInstance();
 
             bool Start();
             bool Stop();
 
+            void SetShellInfo(std::shared_ptr<ShellInfo> shell_info);
+
         private:
+            SignalManager();
+
+            static SignalManager* instance;
+
+            static void SigIntHandler(int signal);
+            static void SigStopHandler(int signal);
+            static void SigChldHandler(int signal);
+
             std::shared_ptr<ShellInfo> shell_info_;
+
     };
 }
+
 
 #endif //SHELL_SIGNAL_MANAGER_H

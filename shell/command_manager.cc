@@ -23,6 +23,8 @@ Run(const Command& command, Job* job) {
     int read_fd = -1;
     for (auto command_iter = command.sub_command().begin(); command_iter != command.sub_command().end();
             command_iter++) {
+
+        // TODO some of this will be replaced with CreatePipes call.
         if (command.sub_command_size() > 1) {
             if (command_iter + 1 != command.sub_command().end()) {
                 // Pipe input/output.
@@ -104,6 +106,20 @@ Run(const Command& command, Job* job) {
                 return false;
             }
         } else if (pid > 0) { // Parent Process
+            // Set child process's PGID.
+            // TODO handle sys call error.
+            setpgid(pid, pid);
+
+            if (command_iter == command.sub_command().begin()) {
+                job = shell_info_->add_job();
+
+                job->set_job_id(job_counter_++);
+
+                // TODO will impl bg jobs (&).
+                job->set_status(Job_Status_FOREGROUND);
+                job->set_process_group_id(pid);
+            }
+
             job->add_process_id(pid);
 
             if (command_iter + 1 == command.sub_command().end()) {
@@ -115,7 +131,6 @@ Run(const Command& command, Job* job) {
 
         prior_read_fd = read_fd;
     }
-    job->set_job_id(job_counter_++);
     return true;
 }
 
@@ -146,6 +161,8 @@ CleanUpJob(const Job& job) {
             return false;
         }
     }
+
+
 
     return true;
 }

@@ -21,14 +21,15 @@ using namespace shell;
 Shell::
 Shell()
         : shell_info_(std::shared_ptr<ShellInfo>(new ShellInfo())),
-          command_manager_(shell_info_),
-          signal_manager_(shell_info_) {
+          command_manager_(new CommandManager(shell_info_)),
+          signal_manager_(SignalManager::GetInstance()) {
+    signal_manager_->SetShellInfo(shell_info_);
 }
 
 bool
 Shell::
 Start() {
-    signal_manager_.Start();
+    signal_manager_->Start();
 
     std::string working_directory(std::getenv("PWD"));
 
@@ -81,7 +82,7 @@ DelegateCommand(Command command) {
             auto cd_command = CdCommand(command);
             cd_command.Run(shell_info_.get(), &command_output);
         } else if (program == "exit") {
-            signal_manager_.Stop();
+            signal_manager_->Stop();
             auto exit_command = ExitCommand(command);
             exit_command.Run(shell_info_.get(), &command_output);
         } else if (program == "jobs") {
@@ -91,7 +92,7 @@ DelegateCommand(Command command) {
         return true;
     } else {
         Job job;
-        return command_manager_.Run(command, &job);
+        return command_manager_->Run(command, &job);
     }
 }
 

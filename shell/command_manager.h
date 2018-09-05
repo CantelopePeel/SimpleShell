@@ -12,6 +12,7 @@
 #include "shell/proto/job.pb.h"
 
 namespace shell {
+    // TODO make singleton with DI
     class CommandManager {
         public:
             CommandManager(std::shared_ptr<ShellInfo> shell_info);

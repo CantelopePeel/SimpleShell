@@ -28,8 +28,8 @@ namespace shell {
             bool StartProcess();
 
             std::shared_ptr<ShellInfo> shell_info_;
-            CommandManager command_manager_;
-            SignalManager signal_manager_;
+            CommandManager* command_manager_;
+            SignalManager* signal_manager_;
     };
 }
 
