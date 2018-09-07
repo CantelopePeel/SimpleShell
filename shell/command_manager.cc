@@ -5,6 +5,8 @@
 #include "command_manager.h"
 
 #include <vector>
+#include <thread>
+#include <chrono>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -12,12 +14,14 @@
 using namespace shell;
 
 CommandManager::
-CommandManager(std::shared_ptr<ShellInfo> shell_info)
-        : shell_info_(shell_info) {}
+CommandManager(std::shared_ptr<ShellInfo> shell_info, SignalManager* signal_manager)
+        : signal_manager_(signal_manager), shell_info_(shell_info) {}
 
 bool
 CommandManager::
-Run(const Command& command, Job* job) {
+Run(const Command& command) {
+    Job* job = shell_info_->add_job();
+
     int prior_read_fd = -1;
     int write_fd = -1;
     int read_fd = -1;
@@ -44,6 +48,8 @@ Run(const Command& command, Job* job) {
             }
         }
 
+        // TODO handle sig service ret error state.
+        signal_manager_->BlockSignals();
         pid_t pid = fork();
 
         if (pid == -1) {
@@ -61,7 +67,12 @@ Run(const Command& command, Job* job) {
 
 
         if (pid == 0) { // Child Process
-            std::cout << "Child Proc: " << command_iter->DebugString() << std::endl;
+            std::cout << "Child Proc: " << command_iter->DebugString() << std::endl; // TODO remove.
+            signal_manager_->UnblockSignals();
+            // Set child process's PGID.
+            // TODO handle sys call error.
+            setpgid(0, 0);
+
             if (command.sub_command_size() > 1) {
                 if (command_iter != command.sub_command().begin()) {
                     std::cout << command_iter->program() << " IN FD: " << prior_read_fd << std::endl;
@@ -91,6 +102,7 @@ Run(const Command& command, Job* job) {
                         return false;
                     }
 
+                    // TODO handle syscall errors.
                     close(read_fd);
                     close(write_fd);
                 } else {
@@ -106,31 +118,56 @@ Run(const Command& command, Job* job) {
                 return false;
             }
         } else if (pid > 0) { // Parent Process
-            // Set child process's PGID.
-            // TODO handle sys call error.
-            setpgid(pid, pid);
+            // TODO only unblock if command is not bg.
+
+
 
             if (command_iter == command.sub_command().begin()) {
-                job = shell_info_->add_job();
-
                 job->set_job_id(job_counter_++);
 
                 // TODO will impl bg jobs (&).
-                job->set_status(Job_Status_FOREGROUND);
+                job->set_status(Job::FOREGROUND);
                 job->set_process_group_id(pid);
             }
 
             job->add_process_id(pid);
 
+
             if (command_iter + 1 == command.sub_command().end()) {
                 // TODO handle if an error occurs.
-                waitpid(pid, nullptr, 0);
-                CleanUpJob(*job);
+                signal_manager_->UnblockSignals();
+                BlockForegroundJob(job);
+                CleanUpJob(job);
             }
         }
 
         prior_read_fd = read_fd;
     }
+    return true;
+}
+
+bool
+CommandManager::
+CleanUpJob(Job* job) {
+    for (int file_descriptor : job->open_file_descriptor()) {
+        int close_val = close(file_descriptor);
+
+        if (close_val == -1) {
+            // TODO handle error value.
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool
+CommandManager::
+BlockForegroundJob(Job* job) {
+    while (job->status() == Job_Status_FOREGROUND) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
     return true;
 }
 
@@ -150,19 +187,3 @@ ClosePipes(const Job& job) {
     return false;
 }
 
-bool
-CommandManager::
-CleanUpJob(const Job& job) {
-    for (int file_descriptor : job.open_file_descriptor()) {
-        int close_val = close(file_descriptor);
-
-        if (close_val == -1) {
-            // TODO handle error value.
-            return false;
-        }
-    }
-
-
-
-    return true;
-}

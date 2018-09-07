@@ -7,6 +7,7 @@ cc_library(
         "command_manager.cc",
     ],
     deps = [
+        ":signal-manager-lib",
         "//shell/proto:shell-info-proto-lib",
         "//shell/proto:command-proto-lib",
         "//shell/proto:job-proto-lib",

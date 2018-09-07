@@ -1,11 +1,11 @@
-syntax = "proto3";
+syntax = "proto2";
 
 import "shell/proto/job.proto";
 
 package shell;
 
 message ShellInfo {
-    string working_directory = 1;
+    required string working_directory = 1;
 
     repeated Job job = 2;
 }

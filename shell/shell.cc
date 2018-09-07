@@ -21,9 +21,9 @@ using namespace shell;
 Shell::
 Shell()
         : shell_info_(std::shared_ptr<ShellInfo>(new ShellInfo())),
-          command_manager_(new CommandManager(shell_info_)),
           signal_manager_(SignalManager::GetInstance()) {
     signal_manager_->SetShellInfo(shell_info_);
+    command_manager_ = new CommandManager(shell_info_, signal_manager_);
 }
 
 bool
@@ -91,8 +91,7 @@ DelegateCommand(Command command) {
         }
         return true;
     } else {
-        Job job;
-        return command_manager_->Run(command, &job);
+        return command_manager_->Run(command);
     }
 }
 

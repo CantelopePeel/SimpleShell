@@ -15,9 +15,23 @@ namespace {
 // TODO move to ShellInfoService
 bool
 GetForegroundJob(std::shared_ptr<ShellInfo> shell_info, Job* fg_job) {
-    for (Job job : shell_info->job()) {
+    for (const Job& job : shell_info->job()) {
         if (job.status() == Job_Status_FOREGROUND) {
-            fg_job = &job;
+            fg_job->CopyFrom(job);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool
+SetForegroundJobStatus(std::shared_ptr<ShellInfo> shell_info, const Job_Status& status) {
+    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
+         job_iter !=  shell_info->mutable_job()->pointer_end();
+         job_iter++) {
+        if ((*job_iter)->status() == Job_Status_FOREGROUND) {
+            (*job_iter)->set_status(status);
             return true;
         }
     }
@@ -27,11 +41,13 @@ GetForegroundJob(std::shared_ptr<ShellInfo> shell_info, Job* fg_job) {
 
 // TODO move to ShellInfoService
 bool
-GetJobByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, Job* ret_job) {
-    for (Job job : shell_info->job()) {
-        for (int process_id : job.process_id()) {
+GetJobByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, Job** ret_job) {
+    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
+         job_iter !=  shell_info->mutable_job()->pointer_end();
+         job_iter++) {
+        for (int process_id : (*job_iter)->process_id()) {
             if (process_id == pid) {
-                ret_job = &job;
+                ret_job = &*job_iter;
                 return true;
             }
         }
@@ -60,9 +76,16 @@ GetInstance() {
 bool
 SignalManager::
 Start() {
+    // TODO handler sys call errors for signal mask/signal handlers.
+    // Set up signal mask.
+    sigemptyset(&signal_mask_);
+    sigaddset(&signal_mask_, SIGINT);
+    sigaddset(&signal_mask_, SIGTSTP);
+    sigaddset(&signal_mask_, SIGCHLD);
+
     // Set up signal handlers.
     std::signal(SIGINT, &SignalManager::SigIntHandler);
-    std::signal(SIGSTOP, &SignalManager::SigStopHandler);
+    std::signal(SIGTSTP, &SignalManager::SigTstpHandler);
     std::signal(SIGCHLD, &SignalManager::SigChldHandler);
 
     return true;
@@ -81,6 +104,22 @@ SetShellInfo(std::shared_ptr<ShellInfo> shell_info) {
     shell_info_ = shell_info;
 }
 
+bool
+SignalManager::
+BlockSignals() {
+    // TODO handle syscall errors and amend return value to match error state.
+    sigprocmask(SIG_BLOCK, &signal_mask_, nullptr);
+    return true;
+}
+
+bool
+SignalManager::
+UnblockSignals() {
+    // TODO handle syscall errors and amend return value to match error state.
+    sigprocmask(SIG_UNBLOCK, &signal_mask_, nullptr);
+    return true;
+}
+
 void
 SignalManager::
 SigIntHandler(int signal) {
@@ -93,7 +132,7 @@ SigIntHandler(int signal) {
 
 void
 SignalManager::
-SigStopHandler(int signal) {
+SigTstpHandler(int signal) {
     Job fg_job;
     if (GetForegroundJob(instance->shell_info_, &fg_job)) {
         // TODO handle sys call error
@@ -113,8 +152,12 @@ SigChldHandler(int signal) {
         // TODO do something with this. Possibly reap in a new JobService?
         Job job;
 
-        if (GetJobByPid(instance->shell_info_, child_pid, &job)) {
+        // Support different wait statuses.
+        GetForegroundJob(instance->shell_info_, &job);
+        if (SetForegroundJobStatus(instance->shell_info_, Job_Status_UNDEFINED)) {
             // TODO delete the job. Deliver a message for killed procs.
+
+            //std::cout << "Set stat: " << job->DebugString() << std::endl;
         }
     }
 }

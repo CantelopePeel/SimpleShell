@@ -1,4 +1,4 @@
-syntax = "proto3";
+syntax = "proto2";
 
 package shell;
 
@@ -6,13 +6,14 @@ message Job {
     enum Status {
         FOREGROUND = 0;
         BACKGROUND = 1;
+        UNDEFINED = 2;
     }
 
-    uint32 job_id = 1;
+    required uint32 job_id = 1;
 
-    Status status = 2;
+    required Status status = 2;
 
-    uint32 process_group_id = 3;
+    required uint32 process_group_id = 3;
 
     repeated uint32 process_id = 4;
     repeated uint32 open_file_descriptor = 5;
