@@ -21,6 +21,7 @@ Run(ShellInfo* shell_info, std::string* output) {
 
     // TODO need to check if is a valid path.
     if (argument_count == 0) {
+        // TODO handle syscall error.
         change_dir_val = chdir(std::getenv("HOME"));
     } else {
         change_dir_val = chdir(command_.sub_command(0).argument(0).c_str());

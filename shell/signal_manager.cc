@@ -168,6 +168,7 @@ SigChldHandler(int signal) {
         // TODO Support different wait statuses.
         if (GetJobIdByPid(instance->shell_info_, child_pid, &job_id)) {
             if (WIFSTOPPED(status)) {
+                // TODO print a message about job changing.
                 SetJobStatus(instance->shell_info_, job_id, Job::STOPPED);
             } else if (WIFSIGNALED(status)) {
                 SetJobStatus(instance->shell_info_, job_id, Job::UNDEFINED);

@@ -48,15 +48,3 @@ IsInteralCommand(const Command& command) {
            command.sub_command(0).program() == "exit" ||
            command.sub_command(0).program() == "jobs";
 }
-
-const Job*
-ShellUtils::
-GetForegroundJob(std::shared_ptr<ShellInfo> shell_info) {
-    for (const auto& job : shell_info->job()) {
-        if (job.status() == Job_Status_FOREGROUND) {
-            return &job;
-        }
-    }
-
-    return nullptr;
-}

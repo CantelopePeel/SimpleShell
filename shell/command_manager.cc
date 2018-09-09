@@ -65,7 +65,7 @@ Run(const Command& command) {
             return false;
         }
 
-
+        // TODO move to helper function.
         // Convert command arguments.
         char* arguments[command_iter->argument_size() + 2];
 
@@ -77,12 +77,9 @@ Run(const Command& command) {
 
 
         if (pid == 0) { // Child Process
-            // TODO remove debug msg
-            // std::cout << "Child Proc: " << command_iter->DebugString() << " " << current_read_fd << " " << current_write_fd << std::endl; // TODO remove.
             signal_manager_->UnblockSignals();
             // Set child process's PGID.
             // TODO handle sys call error.
-            setpgid(0, 0);
 
             if (current_read_fd != STDIN_FILENO) {
                 // TODO handle syscall error
@@ -120,6 +117,7 @@ Run(const Command& command) {
 
             job->add_process_id(pid);
 
+            setpgid(pid, job->process_group_id());
 
             if (command_iter + 1 == command.sub_command().end()) {
                 // TODO handle if an error occurs.

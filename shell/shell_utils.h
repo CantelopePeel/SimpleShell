@@ -14,8 +14,6 @@ namespace shell {
         public:
             static bool ParseCommand(const std::string& command_line, Command* command);
             static bool IsInteralCommand(const Command& command);
-
-            static const Job* GetForegroundJob(std::shared_ptr<ShellInfo> shell_info);
     };
 }
 
