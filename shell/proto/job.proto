@@ -6,7 +6,8 @@ message Job {
     enum Status {
         FOREGROUND = 0;
         BACKGROUND = 1;
-        UNDEFINED = 2;
+        STOPPED = 3;
+        UNDEFINED = 4;
     }
 
     required uint32 job_id = 1;

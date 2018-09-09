@@ -34,8 +34,6 @@ ParseCommand(const std::string& command_line, Command* command) {
             }
         }
 
-        std::cout << "Command: " << command->DebugString() << std::endl;
-
         return true;
     } else {
         // TODO add error message.

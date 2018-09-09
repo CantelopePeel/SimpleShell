@@ -39,15 +39,27 @@ SetForegroundJobStatus(std::shared_ptr<ShellInfo> shell_info, const Job_Status& 
     return false;
 }
 
-// TODO move to ShellInfoService
 bool
-GetJobByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, Job** ret_job) {
+SetJobStatus(std::shared_ptr<ShellInfo> shell_info, int job_id, const Job_Status& status) {
     for (auto job_iter = shell_info->mutable_job()->pointer_begin();
          job_iter !=  shell_info->mutable_job()->pointer_end();
          job_iter++) {
-        for (int process_id : (*job_iter)->process_id()) {
+        if ((*job_iter)->job_id() == job_id) {
+            (*job_iter)->set_status(status);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// TODO move to ShellInfoService
+bool
+GetJobIdByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, int* job_id) {
+    for (const Job& job : shell_info->job()) {
+        for (int process_id : job.process_id()) {
             if (process_id == pid) {
-                ret_job = &*job_iter;
+                *job_id = job.job_id();
                 return true;
             }
         }
@@ -134,9 +146,10 @@ void
 SignalManager::
 SigTstpHandler(int signal) {
     Job fg_job;
+    std::cout << "TSTP" << std::endl;
     if (GetForegroundJob(instance->shell_info_, &fg_job)) {
         // TODO handle sys call error
-        kill(-(fg_job.process_group_id()), SIGSTOP);
+        kill(-(fg_job.process_group_id()), SIGTSTP);
     } // TODO handle no fg job found.
 }
 
@@ -150,14 +163,22 @@ SigChldHandler(int signal) {
 
     while ((child_pid = waitpid(-1, &status, (WNOHANG | WUNTRACED))) > 0) {
         // TODO do something with this. Possibly reap in a new JobService?
-        Job job;
+        int job_id;
 
-        // Support different wait statuses.
-        GetForegroundJob(instance->shell_info_, &job);
-        if (SetForegroundJobStatus(instance->shell_info_, Job_Status_UNDEFINED)) {
-            // TODO delete the job. Deliver a message for killed procs.
+        // TODO Support different wait statuses.
+        if (GetJobIdByPid(instance->shell_info_, child_pid, &job_id)) {
+            if (WIFSTOPPED(status)) {
+                SetJobStatus(instance->shell_info_, job_id, Job::STOPPED);
+            } else if (WIFSIGNALED(status)) {
+                SetJobStatus(instance->shell_info_, job_id, Job::UNDEFINED);
+            } else if (WIFEXITED(status)) {
+                SetJobStatus(instance->shell_info_, job_id, Job::UNDEFINED);
+            } else {
+                // TODO handle error.
+            }
 
-            //std::cout << "Set stat: " << job->DebugString() << std::endl;
+        } else {
+            // TODO handle error.
         }
     }
 }
