@@ -111,7 +111,11 @@ Run(const Command& command) {
                 job->set_job_id(job_counter_++);
 
                 // TODO will impl bg jobs (&).
-                job->set_status(Job::FOREGROUND);
+                if (command.background()) {
+                    job->set_status(Job::BACKGROUND);
+                } else {
+                    job->set_status(Job::FOREGROUND);
+                }
                 job->set_process_group_id(pid);
             }
 
@@ -121,10 +125,15 @@ Run(const Command& command) {
 
             if (command_iter + 1 == command.sub_command().end()) {
                 // TODO handle if an error occurs.
-                // TODO only unblock if command is not bg.
                 signal_manager_->UnblockSignals();
-                BlockForegroundJob(job);
-                CleanUpJob(job);
+
+                if (command.background()) {
+                    // TODO clean up background processes.
+                    // TODO print a message.
+                } else {
+                    BlockForegroundJob(job);
+                    CleanUpJob(job);
+                }
             }
         }
     }

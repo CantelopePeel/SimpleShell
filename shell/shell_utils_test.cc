@@ -27,11 +27,3 @@ TEST_F(ShellUtilsTest, ParseCommand_Success2) {
 TEST_F(ShellUtilsTest, ParseCommand_Success3) {
     ASSERT_TRUE(ShellUtils::ParseCommand(" ps aux", &command_));
 }
-
-TEST_F(ShellUtilsTest, ParseCommand_Success4) {
-    // TODO, we will implement later.
-    ASSERT_FALSE(true);
-}
-
-TEST_F(ShellUtilsTest, IsInternalCommand) {
-}

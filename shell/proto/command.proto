@@ -9,5 +9,6 @@ message Command {
     }
 
     required string original_command = 1;
-    repeated SubCommand sub_command = 2;
+    required bool background = 2;
+    repeated SubCommand sub_command = 3;
 }

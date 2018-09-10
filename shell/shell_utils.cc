@@ -13,6 +13,7 @@ bool
 ShellUtils::
 ParseCommand(const std::string& command_line, Command* command) {
     command->set_original_command(command_line);
+    command->set_background(false);
 
     std::regex whitespace_regex("\\s+");
     auto token_iter = std::sregex_token_iterator(command_line.begin(), command_line.end(), whitespace_regex, -1);
@@ -21,8 +22,16 @@ ParseCommand(const std::string& command_line, Command* command) {
     if (token_iter != std::sregex_token_iterator()) {
         bool set_program = true;
         while (token_iter != std::sregex_token_iterator()) {
-            // TODO handle errors.
-            if (std::string(*token_iter) == "|") {
+            // TODO handle errors. Handle if is an internal job or if '&' not last token.
+            // TODO handle if "| &", which is really bad syntax.
+            if (std::string(*token_iter) == "&") {
+                if (++token_iter == std::sregex_token_iterator()) {
+                    command->set_background(true);
+                } else {
+                    // TODO handle error when '&' is not the last token.
+                    return false;
+                }
+            } else if (std::string(*token_iter) == "|") {
                 sub_command = command->add_sub_command();
                 set_program = true;
                 token_iter++;
