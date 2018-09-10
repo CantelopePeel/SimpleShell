@@ -7,6 +7,7 @@
 #include <csignal>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 using namespace shell;
 
