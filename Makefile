@@ -3,13 +3,14 @@ BAZEL_EXEC=bazel/output/bazel
 
 .PHONY: shell_build
 shell_build: $(BAZEL_EXEC)
-	$(BAZEL_EXEC) build //shell:shell-exec
+	mkdir -p ./build
+	$(BAZEL_EXEC) --output_user_root=./build build //shell:shell-exec
 	mkdir -p ./bin
 	cp ./bazel-bin/shell/shell-exec ./bin
 
 .PHONY: shell_test
 shell_test: $(BAZEL_EXEC)
-	$(BAZEL_EXEC) test //shell:shell-test
+	$(BAZEL_EXEC) --output_user_root=./build test //shell:shell-test
 
 .PHONY: proc_build
 proc_build:
@@ -19,15 +20,15 @@ proc_build:
 
 .PHONY: run
 run: $(BAZEL_EXEC)
-	$(BAZEL_EXEC) run //shell:shell-exec
+	$(BAZEL_EXEC) --output_user_root=./build run //shell:shell-exec
 
 .PHONY: clean
 clean: $(BAZEL_EXEC)
-	$(BAZEL_EXEC) clean
+	$(BAZEL_EXEC) --output_user_root=./build clean
 
 .PHONY: full_clean
 full_clean: $(BAZEL_EXEC)
-	$(BAZEL_EXEC) clean
+	$(BAZEL_EXEC) --output_user_root=./build clean
 	rm -rf bazel
 
 
