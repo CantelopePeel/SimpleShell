@@ -1,3 +1,5 @@
+package(default_visibility = ["//shell:__subpackages__"])
+
 cc_library(
     name = "command-manager-lib",
     hdrs = [
@@ -8,6 +10,7 @@ cc_library(
     ],
     deps = [
         ":signal-manager-lib",
+        ":shell-macros-lib",
         "//shell/proto:shell-info-proto-lib",
         "//shell/proto:command-proto-lib",
         "//shell/proto:job-proto-lib",
@@ -23,8 +26,16 @@ cc_library(
         "signal_manager.cc",
     ],
     deps = [
+        ":shell-macros-lib",
         "//shell/proto:shell-info-proto-lib",
         "//shell/proto:job-proto-lib",
+    ],
+)
+
+cc_library(
+    name = "shell-macros-lib",
+    hdrs = [
+        "shell_macros.h",
     ],
 )
 
@@ -69,6 +80,22 @@ cc_test(
         ":shell-utils-lib",
         "@gtest//:gtest",
         "@gtest//:gtest_main",
+    ],
+)
+
+py_binary(
+    name = "shell-test",
+    srcs = [
+        "shell-test.py",
+    ],
+    deps = [
+        "//shell/proto:shell-info-proto-py-lib",
+        "@com_google_protobuf//:protobuf_python",
+    ],
+    data = [
+        ":success_commands.sh",
+        ":failure_commands.sh",
+        ":shell-exec",
     ],
 )
 

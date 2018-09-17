@@ -3,6 +3,7 @@
 //
 
 #include "command_manager.h"
+#include "shell_macros.h"
 
 #include <vector>
 #include <thread>
@@ -30,22 +31,17 @@ Run(const Command& command) {
     for (auto command_iter = command.sub_command().begin(); command_iter != command.sub_command().end();
             command_iter++) {
 
-        // TODO some of this will be replaced with CreatePipes call.
         if (command.sub_command_size() > 1) {
             if (command_iter + 1 != command.sub_command().end()) {
                 // Pipe input/output.
 
-                int pipe_val = pipe(pipe_fd);
-
-                if (pipe_val == -1) {
-                    // TODO handle pipe creation error.
-                    return false;
-                }
+                SYSCALL_RET(pipe(pipe_fd));
 
                 current_read_fd = read_fd;
                 current_write_fd = pipe_fd[1];
 
                 read_fd = pipe_fd[0];
+
                 // Add file descriptors to job.
                 job->add_open_file_descriptor(pipe_fd[0]);
                 job->add_open_file_descriptor(pipe_fd[1]);
@@ -55,17 +51,13 @@ Run(const Command& command) {
             }
         }
 
-        // TODO handle sig service ret error state.
-        signal_manager_->BlockSignals();
-        pid_t pid = fork();
-
-
-        if (pid == -1) {
-            // TODO handle error with message.
+        if (!signal_manager_->BlockSignals()) {
             return false;
         }
 
-        // TODO move to helper function.
+        pid_t pid;
+        SYSCALL_RET(pid = fork());
+
         // Convert command arguments.
         char* arguments[command_iter->argument_size() + 2];
 
@@ -77,40 +69,30 @@ Run(const Command& command) {
 
 
         if (pid == 0) { // Child Process
-            signal_manager_->UnblockSignals();
-            // Set child process's PGID.
-            // TODO handle sys call error.
+            if (!signal_manager_->UnblockSignals()) {
+                std::exit(1);
+            }
 
             if (current_read_fd != STDIN_FILENO) {
-                // TODO handle syscall error
-                dup2(current_read_fd, STDIN_FILENO);
-                close(current_read_fd);
+                SYSCALL_EXIT(dup2(current_read_fd, STDIN_FILENO));
+                SYSCALL_EXIT(close(current_read_fd));
             }
 
             if (current_write_fd != STDOUT_FILENO) {
-                // TODO handle syscall error
-                dup2(current_write_fd, STDOUT_FILENO);
-                close(current_write_fd);
+                SYSCALL_EXIT(dup2(current_write_fd, STDOUT_FILENO));
+                SYSCALL_EXIT(close(current_write_fd));
             }
 
-            int exec_val = execvp(command_iter->program().c_str(), arguments);
-            if (exec_val < 0) {
-                // TODO give a verbose error message.
-                std::cout << "ERROR" << std::endl;
-                std::exit(0);
-                return false;
-            }
+            SYSCALL_EXIT(execvp(command_iter->program().c_str(), arguments))
         } else if (pid > 0) { // Parent Process
-            // TODO handle syscall error.
-
             if (current_write_fd != STDOUT_FILENO) {
-                close(current_write_fd);
+                SYSCALL_RET(close(current_write_fd));
             }
 
             if (command_iter == command.sub_command().begin()) {
+                job->set_command(command.original_command());
                 job->set_job_id(job_counter_++);
 
-                // TODO will impl bg jobs (&).
                 if (command.background()) {
                     job->set_status(Job::BACKGROUND);
                 } else {
@@ -121,18 +103,18 @@ Run(const Command& command) {
 
             job->add_process_id(pid);
 
-            setpgid(pid, job->process_group_id());
+            SYSCALL_RET(setpgid(pid, job->process_group_id()));
 
             if (command_iter + 1 == command.sub_command().end()) {
-                // TODO handle if an error occurs.
-                signal_manager_->UnblockSignals();
+                if (!signal_manager_->UnblockSignals()) {
+                    return false;
+                }
 
                 if (command.background()) {
-                    // TODO clean up background processes.
-                    // TODO print a message.
+                    std::printf("[%d]: pgid: %d status: %s : %s\n", job->job_id(), job->process_group_id(),
+                                Job::Status_Name(job->status()).c_str(), job->command().c_str());
                 } else {
                     BlockForegroundJob(job);
-                    CleanUpJob(job);
                 }
             }
         }
@@ -140,44 +122,11 @@ Run(const Command& command) {
     return true;
 }
 
-bool
-CommandManager::
-CleanUpJob(Job* job) {
-    for (int file_descriptor : job->open_file_descriptor()) {
-        int close_val = close(file_descriptor);
-
-        if (close_val == -1) {
-            // TODO handle error value.
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool
+void
 CommandManager::
 BlockForegroundJob(Job* job) {
     while (job->status() == Job_Status_FOREGROUND) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    return true;
-}
-
-bool
-CommandManager::
-CreatePipes(const Command& command, Job* job) {
-    for (int i = 0; i < (command.sub_command_size() - 1); i++) {
-        // TODO implement
-    }
-    return false;
-}
-
-bool
-CommandManager::
-ClosePipes(const Job& job) {
-    // TODO implement
-    return false;
 }
 

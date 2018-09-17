@@ -19,18 +19,19 @@ namespace shell {
             bool Start();
             bool Stop();
 
-            // TODO add a private init function which shell::Shell as friend can call to provide Dep Injection.
-            // TODO impl a reset function.
-
             void SetShellInfo(std::shared_ptr<ShellInfo> shell_info);
 
             bool BlockSignals();
             bool UnblockSignals();
 
+            static bool ContinueJob(std::shared_ptr<ShellInfo> shell_info, int job_id);
+            static bool SetJobStatus(std::shared_ptr<ShellInfo> shell_info, int job_id, const Job_Status& status);
         private:
             SignalManager();
 
             static SignalManager* instance;
+
+            static bool CleanUpJob(std::shared_ptr <ShellInfo> shared_ptr, int id);
 
             static void SigIntHandler(int signal);
             static void SigTstpHandler(int signal);
@@ -38,6 +39,7 @@ namespace shell {
 
             sigset_t signal_mask_;
             std::shared_ptr<ShellInfo> shell_info_;
+
     };
 }
 

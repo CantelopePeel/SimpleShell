@@ -20,13 +20,20 @@ cc_library(
         "cd_command.h",
         "exit_command.h",
         "jobs_command.h",
+        "bg_command.h",
+        "fg_command.h",
+        "shell_info_command.h",
     ],
     srcs = [
         "cd_command.cc",
         "exit_command.cc",
         "jobs_command.cc",
+        "bg_command.cc",
+        "fg_command.cc",
+        "shell_info_command.cc",
     ],
     deps = [
         ":internal-command-lib",
+        "//shell:shell-macros-lib",
     ],
 )

@@ -3,9 +3,11 @@
 //
 
 #include "signal_manager.h"
+#include "shell_macros.h"
 
 #include <csignal>
 #include <signal.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -13,7 +15,6 @@ using namespace shell;
 
 namespace {
 
-// TODO move to ShellInfoService
 bool
 GetForegroundJob(std::shared_ptr<ShellInfo> shell_info, Job* fg_job) {
     for (const Job& job : shell_info->job()) {
@@ -40,21 +41,6 @@ SetForegroundJobStatus(std::shared_ptr<ShellInfo> shell_info, const Job_Status& 
     return false;
 }
 
-bool
-SetJobStatus(std::shared_ptr<ShellInfo> shell_info, int job_id, const Job_Status& status) {
-    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
-         job_iter !=  shell_info->mutable_job()->pointer_end();
-         job_iter++) {
-        if ((*job_iter)->job_id() == job_id) {
-            (*job_iter)->set_status(status);
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// TODO move to ShellInfoService
 bool
 GetJobIdByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, int* job_id) {
     for (const Job& job : shell_info->job()) {
@@ -89,12 +75,11 @@ GetInstance() {
 bool
 SignalManager::
 Start() {
-    // TODO handler sys call errors for signal mask/signal handlers.
     // Set up signal mask.
-    sigemptyset(&signal_mask_);
-    sigaddset(&signal_mask_, SIGINT);
-    sigaddset(&signal_mask_, SIGTSTP);
-    sigaddset(&signal_mask_, SIGCHLD);
+    SYSCALL_RET(sigemptyset(&signal_mask_));
+    SYSCALL_RET(sigaddset(&signal_mask_, SIGINT));
+    SYSCALL_RET(sigaddset(&signal_mask_, SIGTSTP));
+    SYSCALL_RET(sigaddset(&signal_mask_, SIGCHLD));
 
     // Set up signal handlers.
     std::signal(SIGINT, &SignalManager::SigIntHandler);
@@ -107,7 +92,6 @@ Start() {
 bool
 SignalManager::
 Stop() {
-    // TODO reset signal handlers to default.
     return true;
 }
 
@@ -120,16 +104,14 @@ SetShellInfo(std::shared_ptr<ShellInfo> shell_info) {
 bool
 SignalManager::
 BlockSignals() {
-    // TODO handle syscall errors and amend return value to match error state.
-    sigprocmask(SIG_BLOCK, &signal_mask_, nullptr);
+    SYSCALL_RET(sigprocmask(SIG_BLOCK, &signal_mask_, nullptr));
     return true;
 }
 
 bool
 SignalManager::
 UnblockSignals() {
-    // TODO handle syscall errors and amend return value to match error state.
-    sigprocmask(SIG_UNBLOCK, &signal_mask_, nullptr);
+    SYSCALL_RET(sigprocmask(SIG_UNBLOCK, &signal_mask_, nullptr));
     return true;
 }
 
@@ -138,32 +120,26 @@ SignalManager::
 SigIntHandler(int signal) {
     Job fg_job;
     if (GetForegroundJob(instance->shell_info_, &fg_job)) {
-        // TODO handle sys call error
-        kill(-(fg_job.process_group_id()), SIGINT);
-    } // TODO handle no fg job found.
+        SYSCALL(kill(-(fg_job.process_group_id()), SIGINT));
+    }
 }
 
 void
 SignalManager::
 SigTstpHandler(int signal) {
     Job fg_job;
-    std::cout << "TSTP" << std::endl;
     if (GetForegroundJob(instance->shell_info_, &fg_job)) {
-        // TODO handle sys call error
-        kill(-(fg_job.process_group_id()), SIGTSTP);
-    } // TODO handle no fg job found.
+        SYSCALL(kill(-(fg_job.process_group_id()), SIGTSTP));
+    }
 }
 
 void
 SignalManager::
 SigChldHandler(int signal) {
-    // TODO implement.
-
     pid_t child_pid;
     int status;
 
     while ((child_pid = waitpid(-1, &status, (WNOHANG | WUNTRACED))) > 0) {
-        // TODO do something with this. Possibly reap in a new JobService?
         int job_id;
 
         // TODO Support different wait statuses.
@@ -173,14 +149,72 @@ SigChldHandler(int signal) {
                 SetJobStatus(instance->shell_info_, job_id, Job::STOPPED);
             } else if (WIFSIGNALED(status)) {
                 SetJobStatus(instance->shell_info_, job_id, Job::UNDEFINED);
+                CleanUpJob(instance->shell_info_, job_id);
             } else if (WIFEXITED(status)) {
                 SetJobStatus(instance->shell_info_, job_id, Job::UNDEFINED);
+                CleanUpJob(instance->shell_info_, job_id);
             } else {
-                // TODO handle error.
+                std::cerr << "Error: Job status could not be determined." << std::endl;
             }
 
         } else {
-            // TODO handle error.
+            std::cerr << "Error: Job not found with a PID when signaled." << std::endl;
         }
     }
+}
+
+bool
+SignalManager::
+ContinueJob(std::shared_ptr<ShellInfo> shell_info, int job_id) {
+    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
+         job_iter !=  shell_info->mutable_job()->pointer_end();
+         job_iter++) {
+        if ((*job_iter)->job_id() == job_id && (*job_iter)->status() != Job::UNDEFINED) {
+            SYSCALL_RET(kill(-(*job_iter)->process_group_id(), SIGCONT));
+            return true;
+        }
+    }
+
+    std::cerr << "Error: No such job was found. No job was continued." << std::endl;
+    return false;
+}
+
+bool
+SignalManager::
+SetJobStatus(std::shared_ptr<ShellInfo> shell_info, int job_id, const Job_Status& status) {
+    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
+         job_iter !=  shell_info->mutable_job()->pointer_end();
+         job_iter++) {
+         if ((*job_iter)->job_id() == job_id) {
+            bool is_bg = (status == Job::BACKGROUND || (*job_iter)->status() == Job::BACKGROUND);
+            (*job_iter)->set_status(status);
+
+            if (is_bg) {
+                std::printf("\n[%d]: pgid: %d status: %s : %s\n", (*job_iter)->job_id(), (*job_iter)->process_group_id(),
+                            Job::Status_Name((*job_iter)->status()).c_str(), (*job_iter)->command().c_str());
+            }
+            return true;
+        }
+    }
+
+    std::cerr << "Error: No such job was found. Status not set." << std::endl;
+    return false;
+}
+
+bool
+SignalManager::
+CleanUpJob(std::shared_ptr<ShellInfo> shell_info, int job_id) {
+    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
+         job_iter !=  shell_info->mutable_job()->pointer_end();
+         job_iter++) {
+        if ((*job_iter)->job_id() == job_id) {
+            for (int open_file_descriptor : (*job_iter)->open_file_descriptor()) {
+                SYSCALL_RET(close(open_file_descriptor));
+            }
+            return true;
+        }
+    }
+
+    std::cerr << "Error: No such job was found. No job was cleaned up." << std::endl;
+    return false;
 }

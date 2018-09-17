@@ -1,3 +1,5 @@
+load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
+
 package(default_visibility = ["//shell:__subpackages__"])
 
 cc_proto_library(
@@ -18,6 +20,23 @@ cc_proto_library(
     name = "shell-info-proto-lib",
     deps = [
         ":shell-info-proto",
+    ],
+)
+
+py_proto_library(
+    name = "job-proto-py-lib",
+    protos = [
+        "job.proto",
+    ],
+)
+
+py_proto_library(
+    name = "shell-info-proto-py-lib",
+    protos = [
+        "shell_info.proto",
+    ],
+    proto_deps = [
+        ":job-proto-py-lib"
     ],
 )
 

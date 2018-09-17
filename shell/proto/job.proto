@@ -18,4 +18,5 @@ message Job {
 
     repeated uint32 process_id = 4;
     repeated uint32 open_file_descriptor = 5;
+    required string command = 6;
 }

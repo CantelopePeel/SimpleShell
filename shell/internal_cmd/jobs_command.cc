@@ -15,10 +15,12 @@ void
 JobsCommand::
 Run(ShellInfo* shell_info, std::string* output) {
     for (const Job& job : shell_info->job()) {
-        std::printf("[%d] pgid: %d status: %s\n", job.job_id(), job.process_group_id(),
-                    Job::Status_Name(job.status()).c_str());
-        for (int process_id : job.process_id()) {
-            std::printf("  (pid: %d)\n", process_id);
+        if (job.status() != Job::UNDEFINED) {
+            std::printf("[%d]: pgid: %d status: %s : %s\n", job.job_id(), job.process_group_id(),
+                        Job::Status_Name(job.status()).c_str(), job.command().c_str());
+            for (int process_id : job.process_id()) {
+                std::printf("  (pid: %d)\n", process_id);
+            }
         }
     }
 }

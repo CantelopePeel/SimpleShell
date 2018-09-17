@@ -13,20 +13,14 @@
 #include "signal_manager.h"
 
 namespace shell {
-    // TODO make singleton with DI
     class CommandManager {
         public:
             CommandManager(std::shared_ptr<ShellInfo> shell_info, SignalManager* signal_manager);
 
             bool Run(const Command& command);
+            void BlockForegroundJob(Job* job);
 
-        private:
-            bool CleanUpJob(Job* job);
-            bool BlockForegroundJob(Job* job);
-
-            bool ClosePipes(const Job& job);
-            bool CreatePipes(const Command& command, Job* job);
-
+    private:
             SignalManager* signal_manager_;
 
             std::shared_ptr<ShellInfo> shell_info_;

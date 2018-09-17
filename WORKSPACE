@@ -1,15 +1,37 @@
-http_archive(
-    name = "com_google_protobuf",
-    sha256 = "cef7f1b5a7c5fba672bec2a319246e8feba471f04dcebfe362d55930ee7c1c30",
-    strip_prefix = "protobuf-3.5.0",
-    urls = ["https://github.com/google/protobuf/archive/v3.5.0.zip"],
-)
-
 git_repository(
     name = "gtest",
     remote = "https://github.com/google/googletest",
     commit = "3306848f697568aacf4bcca330f6bdd5ce671899",
 )
+
+new_http_archive(
+    name = "six_archive",
+    url = "https://pypi.python.org/packages/16/d8/bc6316cf98419719bd59c91742194c111b6f2e85abac88e496adefaf7afe/six-1.11.0.tar.gz",
+    build_file_content = """
+py_library(
+    name = "six",
+    srcs = ["six.py"],
+    visibility = ["//visibility:public"],
+)
+    """,
+    strip_prefix = "six-1.11.0",
+)
+
+bind(
+    name = "six",
+    actual = "@six_archive//:six",
+)
+
+http_archive(
+    name = "org_pubref_rules_protobuf",
+    strip_prefix = "rules_protobuf-0.8.1",
+    urls = ["https://github.com/pubref/rules_protobuf/archive/v0.8.1.tar.gz"],
+    sha256 = "fb9852446b5ba688cd7178a60ff451623e4112d015c6adfe0e9a06c5d2dedc08"
+)
+
+load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_repositories")
+py_proto_repositories()
+
 
 # TODO change to newer commit.
 
