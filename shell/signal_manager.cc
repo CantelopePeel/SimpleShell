@@ -28,21 +28,7 @@ GetForegroundJob(std::shared_ptr<ShellInfo> shell_info, Job* fg_job) {
 }
 
 bool
-SetForegroundJobStatus(std::shared_ptr<ShellInfo> shell_info, const Job_Status& status) {
-    for (auto job_iter = shell_info->mutable_job()->pointer_begin();
-         job_iter !=  shell_info->mutable_job()->pointer_end();
-         job_iter++) {
-        if ((*job_iter)->status() == Job_Status_FOREGROUND) {
-            (*job_iter)->set_status(status);
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool
-GetJobIdByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, int* job_id) {
+GetJobIdByPid(std::shared_ptr<ShellInfo> shell_info, pid_t pid, unsigned int* job_id) {
     for (const Job& job : shell_info->job()) {
         for (int process_id : job.process_id()) {
             if (process_id == pid) {
@@ -140,7 +126,7 @@ SigChldHandler(int signal) {
     int status;
 
     while ((child_pid = waitpid(-1, &status, (WNOHANG | WUNTRACED))) > 0) {
-        int job_id;
+        unsigned int job_id;
 
         // TODO Support different wait statuses.
         if (GetJobIdByPid(instance->shell_info_, child_pid, &job_id)) {
@@ -203,7 +189,7 @@ SetJobStatus(std::shared_ptr<ShellInfo> shell_info, int job_id, const Job_Status
 
 bool
 SignalManager::
-CleanUpJob(std::shared_ptr<ShellInfo> shell_info, int job_id) {
+CleanUpJob(std::shared_ptr<ShellInfo> shell_info, unsigned int job_id) {
     for (auto job_iter = shell_info->mutable_job()->pointer_begin();
          job_iter !=  shell_info->mutable_job()->pointer_end();
          job_iter++) {

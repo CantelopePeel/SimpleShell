@@ -31,7 +31,7 @@ namespace shell {
 
             static SignalManager* instance;
 
-            static bool CleanUpJob(std::shared_ptr <ShellInfo> shared_ptr, int id);
+            static bool CleanUpJob(std::shared_ptr <ShellInfo> shared_ptr, unsigned int job_id);
 
             static void SigIntHandler(int signal);
             static void SigTstpHandler(int signal);

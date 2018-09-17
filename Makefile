@@ -4,7 +4,7 @@ BAZEL_EXEC=bazel/output/bazel
 .PHONY: shell_build
 shell_build: $(BAZEL_EXEC)
 	$(BAZEL_EXEC) build //shell:shell-exec
-	mkdir ./bin
+	mkdir -p ./bin
 	cp ./bazel-bin/shell/shell-exec ./bin
 
 .PHONY: shell_test
@@ -13,7 +13,7 @@ shell_test: $(BAZEL_EXEC)
 
 .PHONY: proc_build
 proc_build:
-	mkdir ./bin
+	mkdir -p ./bin
 	g++ -o ./bin/proc_info ./proc_info/proc_info.cc
 	g++ -o ./bin/proc_info_rate ./proc_info/proc_info_rate.cc
 
